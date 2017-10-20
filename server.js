@@ -7,6 +7,7 @@ const compression = require('compression');
 const express = require('express');
 const multiparty = require('multiparty');
 const ipfsAPI = require('ipfs-api');
+const sha256 = require('js-sha256');
 const ipfs = ipfsAPI({ host: 'like-ipfs', port: '5001', protocol: 'http' })
 
 const config = require('./config/config.js');
@@ -35,17 +36,18 @@ app.post('/upload', (req, res) => {
       res.status(500).send('Invalid image');
       return;
     }
-    console.log(targetImage);
+    const fileContent = fs.readFileSync(targetImage.path);
+    const hash256 = sha256(fileContent);
     ipfs.files.add([{
       path: path.basename(targetImage.path),
-      content: fs.readFileSync(targetImage.path),
+      content: fileContent,
     }] , (err, result) => {
       if (err) { console.log(err); res.status(500).send(err.message); return; }
       if (!result || !result[0]) {
         res.status(500).send('IPFS return no result');
         return;
       }
-      res.json({ fields, ipfs: result });
+      res.json({ fields, hash256, ipfs: result });
     });
   });
 });
