@@ -34,6 +34,12 @@ app.post('/upload', (req, res) => {
   const form = new multiparty.Form();
 
   form.parse(req, (err, fields, files) => {
+    const { author, description,  wallet, footprints, license } = fields;
+    const outputFields = {};
+    Object.keys(fields).forEach((key) => {
+      outputFields[key] = fields[key][0];
+    });
+    console.log(outputFields);
     if (err) {
       res.status(500).send(err.message);
       return;
@@ -65,7 +71,9 @@ app.post('/upload', (req, res) => {
         return Promise.reject(
           new Error('IPFS pin return no result'));
       }
-      res.json({ fields, hash256, ipfs: result[0] });
+      outputFields.id = `0x${hash256}`;
+      outputFields.ipfs = result[0];
+      res.json(outputFields);
     })
     .catch((err) => {
       res.status(500).send(err.message || err);
