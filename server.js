@@ -8,9 +8,17 @@ const express = require('express');
 const multiparty = require('multiparty');
 const ipfsAPI = require('ipfs-api');
 const sha256 = require('js-sha256');
-const ipfs = ipfsAPI({ host: 'like-ipfs', port: '5001', protocol: 'http' })
+const Eth = require('ethjs');
+const EthContract = require('ethjs-contract');
 
+const LIKEMEDIA = require('./constant/contract/likemedia');
 const config = require('./config/config.js');
+
+const eth = new Eth(new Eth.HttpProvider('https://rinkeby.infura.io'));
+const contract = new EthContract(eth);
+const LikeContract = contract(LIKEMEDIA.LIKE_MEDIA_ABI);
+const likeContract = LikeContract.at(LIKEMEDIA.LIKE_MEDIA_ADDRESS);
+const ipfs = ipfsAPI({ host: 'like-ipfs', port: '5001', protocol: 'http' })
 
 const app = express();
 app.use(compression());
@@ -63,7 +71,13 @@ app.post('/upload', (req, res) => {
 });
 
 app.get('/query/:key', (req, res) => {
-  res.sendStatus(200);
+  likeContract.get(req.params.key)
+  .then((result) => {
+    res.json(result);
+  })
+  .catch((err) => {
+    res.status(500).send(err.message || err);
+  });
 });
 
 app.get('/', (req, res) => {
