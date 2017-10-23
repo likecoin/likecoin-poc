@@ -41,13 +41,23 @@ app.post('/upload', (req, res) => {
     ipfs.files.add([{
       path: path.basename(targetImage.path),
       content: fileContent,
-    }] , (err, result) => {
-      if (err) { console.log(err); res.status(500).send(err.message); return; }
+    }])
+    .then((result) => {
       if (!result || !result[0]) {
-        res.status(500).send('IPFS return no result');
-        return;
+        return Promise.reject(
+          new Error('IPFS add return no result'));
       }
-      res.json({ fields, hash256, ipfs: result });
+      return ipfs.pin.add(result[0].hash);
+    })
+    .then((result) => {
+      if (!result || !result[0]) {
+        return Promise.reject(
+          new Error('IPFS pin return no result'));
+      }
+      res.json({ fields, hash256, ipfs: result[0] });
+    })
+    .catch((err) => {
+      res.status(500).send(err.message || err);
     });
   });
 });
