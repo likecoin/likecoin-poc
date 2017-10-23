@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const bodyParser = require('body-parser');
 const compression = require('compression');
+const cors = require('cors');
 const express = require('express');
 const multiparty = require('multiparty');
 const ipfsAPI = require('ipfs-api');
@@ -22,6 +23,8 @@ const ipfs = ipfsAPI({ host: 'like-ipfs', port: '5001', protocol: 'http' })
 
 const app = express();
 app.use(compression());
+
+if (config.DEBUG) app.use(cors({ origin: true }));
 
 app.use(express.static('public'));
 app.use(bodyParser.json());
