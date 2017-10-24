@@ -84,7 +84,20 @@ app.post('/upload', (req, res) => {
 app.get('/query/:key', (req, res) => {
   likeContract.get(req.params.key)
   .then((result) => {
-    res.json(result);
+    const mapping = {
+      k: 'key',
+      a: 'author',
+      d: 'description',
+      w: 'wallet',
+      i: 'ipfs',
+      l: 'license',
+      t: 'timestamp',
+    };
+    const output = {};
+    Object.keys(mapping).forEach((key) => {
+      output[mapping[key]] = result[key];
+    });
+    res.json(output);
   })
   .catch((err) => {
     res.status(500).send(err.message || err);
