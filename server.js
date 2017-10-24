@@ -11,6 +11,7 @@ const ipfsAPI = require('ipfs-api');
 const sha256 = require('js-sha256');
 const Eth = require('ethjs');
 const EthContract = require('ethjs-contract');
+const gm = require('gm').subClass({ imageMagick: true });
 
 const LIKEMEDIA = require('./constant/contract/likemedia');
 const config = require('./config/config.js');
@@ -98,6 +99,65 @@ app.get('/query/:key', (req, res) => {
       output[mapping[key]] = result[key];
     });
     res.json(output);
+  })
+  .catch((err) => {
+    res.status(500).send(err.message || err);
+  });
+});
+
+app.post('/meme/:key', (req, res) => {
+  const text = req.body.text;
+  const outputFields = req.body.metadata || {};
+  likeContract.get(req.params.key)
+  .then((result) => {
+    const mapping = {
+      k: 'key',
+      a: 'author',
+      d: 'description',
+      w: 'wallet',
+      i: 'ipfs',
+      l: 'license',
+      t: 'timestamp',
+    };
+    const output = {};
+    Object.keys(mapping).forEach((key) => {
+      output[mapping[key]] = result[key];
+    });
+    return output;
+  })
+  .then((metadata) => {
+    return ipfs.cat(metadata.ipfs);
+  })
+  .then((stream) => {
+    gm(stream)
+    .fill('#ffffff')
+    .stroke('#000000', 2)
+    .font('Noto-Sans-CJK-TC-Bold', 100)
+    .drawText(0, 0, text || '', 'South')
+    .toBuffer((err, fileContent) => {
+      if (err) return handle(err);
+      const hash256 = sha256(fileContent);
+      ipfs.files.add(fileContent)
+      .then((result) => {
+        if (!result || !result[0]) {
+          return Promise.reject(
+            new Error('IPFS add return no result'));
+        }
+        return ipfs.pin.add(result[0].hash);
+      })
+      .then((result) => {
+        if (!result || !result[0]) {
+          return Promise.reject(
+            new Error('IPFS pin return no result'));
+        }
+        outputFields.id = `0x${hash256}`;
+        outputFields.ipfs = result[0];
+        res.json(outputFields);
+      })
+      .catch((err) => {
+        res.status(500).send(err.message || err);
+      });
+    });
   })
   .catch((err) => {
     res.status(500).send(err.message || err);
