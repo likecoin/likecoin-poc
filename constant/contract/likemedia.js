@@ -47,80 +47,45 @@ const LIKE_MEDIA_ABI = [
       {
         "name": "key",
         "type": "bytes32"
-      },
-      {
-        "name": "index",
-        "type": "uint8"
-      }
-    ],
-    "name": "getFp",
-    "outputs": [
-      {
-        "name": "k",
-        "type": "bytes32"
-      },
-      {
-        "name": "s",
-        "type": "uint8"
-      }
-    ],
-    "payable": false,
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [],
-    "name": "prevKey",
-    "outputs": [
-      {
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "payable": false,
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [
-      {
-        "name": "key",
-        "type": "bytes32"
       }
     ],
     "name": "get",
     "outputs": [
       {
-        "name": "k",
+        "name": "",
         "type": "bytes32"
       },
       {
-        "name": "a",
+        "name": "",
         "type": "string"
       },
       {
-        "name": "d",
+        "name": "",
         "type": "string"
       },
       {
-        "name": "w",
+        "name": "",
         "type": "address"
       },
       {
-        "name": "i",
+        "name": "",
         "type": "string"
       },
       {
-        "name": "l",
+        "name": "",
         "type": "string"
       },
       {
-        "name": "t",
+        "name": "",
         "type": "uint256"
       },
       {
-        "name": "i2",
-        "type": "bool"
+        "name": "",
+        "type": "bytes32[]"
+      },
+      {
+        "name": "",
+        "type": "uint8[]"
       }
     ],
     "payable": false,
@@ -172,9 +137,56 @@ const LIKE_MEDIA_ABI = [
     "inputs": [],
     "payable": false,
     "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "key",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "name": "author",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "name": "description",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "name": "wallet",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "ipfs",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "name": "footprintKeys",
+        "type": "bytes32[]"
+      },
+      {
+        "indexed": false,
+        "name": "footprintShares",
+        "type": "uint8[]"
+      },
+      {
+        "indexed": false,
+        "name": "license",
+        "type": "string"
+      }
+    ],
+    "name": "Uploaded",
+    "type": "event"
   }
 ];
 
-const LIKE_MEDIA_ADDRESS = '0xfE4c0cbD9c7f7504626C8d8dC0B68e3a3FDA51af';
+const LIKE_MEDIA_ADDRESS = '0xA97fEfe489ca62ADD4949360DCE30e3351F6881B';
 
 module.exports = { LIKE_MEDIA_ABI, LIKE_MEDIA_ADDRESS };

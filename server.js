@@ -85,18 +85,20 @@ app.post('/upload', (req, res) => {
 app.get('/query/:key', (req, res) => {
   likeContract.get(req.params.key)
   .then((result) => {
-    const mapping = {
-      k: 'key',
-      a: 'author',
-      d: 'description',
-      w: 'wallet',
-      i: 'ipfs',
-      l: 'license',
-      t: 'timestamp',
-    };
+    const fieldNames = [
+      'key',
+      'author',
+      'description',
+      'wallet',
+      'ipfs',
+      'license',
+      'timestamp',
+      'footprintIds',
+      'footprintShares',
+    ];
     const output = {};
-    Object.keys(mapping).forEach((key) => {
-      output[mapping[key]] = result[key];
+    fieldNames.forEach((value, index) => {
+      output[value] = result[index.toString()];
     });
     res.json(output);
   })
@@ -110,18 +112,20 @@ app.post('/meme/:key', (req, res) => {
   const outputFields = req.body.metadata || {};
   likeContract.get(req.params.key)
   .then((result) => {
-    const mapping = {
-      k: 'key',
-      a: 'author',
-      d: 'description',
-      w: 'wallet',
-      i: 'ipfs',
-      l: 'license',
-      t: 'timestamp',
-    };
+    const fieldNames = [
+      'key',
+      'author',
+      'description',
+      'wallet',
+      'ipfs',
+      'license',
+      'timestamp',
+      'footprintIds',
+      'footprintShares',
+    ];
     const output = {};
-    Object.keys(mapping).forEach((key) => {
-      output[mapping[key]] = result[key];
+    fieldNames.forEach((value, index) => {
+      output[value] = result[index.toString()];
     });
     return output;
   })
