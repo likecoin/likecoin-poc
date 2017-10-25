@@ -7,7 +7,7 @@ RUN apk add --no-cache curl fontconfig \
   && mkdir -p /usr/share/fonts/NotoSansCJK-Bold \
   && unzip NotoSansCJK-Bold.ttc.zip -d /usr/share/fonts/NotoSansCJK-Bold/ \
   && rm NotoSansCJK-Bold.ttc.zip \
-  && fc-cache -fv \
+  && fc-cache -fv
 COPY package.json yarn.lock /app/
 RUN yarn install
 COPY web/package.json web/
