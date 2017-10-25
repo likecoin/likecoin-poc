@@ -1,9 +1,14 @@
 {
+  "name": "like-poc",
+  "version": "1.0.0",
+  "description": "poc of likecoin project",
+  "author": "William Chong <williamchong@lakoo.com>",
   "scripts": {
     "start": "node server.js",
     "test": "npm run lint",
     "lint": "eslint *.js"
   },
+  "license": "ISC",
   "dependencies": {
     "body-parser": "^1.18.2",
     "compression": "^1.7.1",
