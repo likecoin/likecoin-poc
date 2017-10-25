@@ -9,6 +9,8 @@ spec:
   ports:
   - port: 4001
     name: swarm
+  - port: 5001
+    name: api
   - port: 8080
     name: readonly
   selector:
@@ -35,8 +37,13 @@ spec:
           ports:
             - containerPort: 4001
               name: swarm
+            - containerPort: 5001
+              name: api
             - containerPort: 8080
               name: readonly
+          resources:
+            requests:
+              cpu: "0.05"
           volumeMounts:
             - name: ipfs-disk
               mountPath: "/data/ipfs"

@@ -20,7 +20,11 @@ const eth = new Eth(new Eth.HttpProvider('https://rinkeby.infura.io'));
 const contract = new EthContract(eth);
 const LikeContract = contract(LIKEMEDIA.LIKE_MEDIA_ABI);
 const likeContract = LikeContract.at(LIKEMEDIA.LIKE_MEDIA_ADDRESS);
-const ipfs = ipfsAPI({ host: 'like-ipfs', port: '5001', protocol: 'http' })
+const ipfs = ipfsAPI({
+  host: config.IPFS_HOST || 'like-ipfs',
+  port: '5001',
+  protocol: 'http',
+})
 
 const app = express();
 app.use(compression());
