@@ -13,6 +13,7 @@ services:
     ports:
      - "3001:3001"
     volumes:
-     - .:/app
+     - ./server.js:/app/server.js
+     - ./config:/app/config
     links:
      - like-ipfs
