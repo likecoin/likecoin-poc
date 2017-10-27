@@ -11,7 +11,9 @@ RUN apk add --no-cache curl fontconfig \
 COPY package.json yarn.lock /app/
 RUN yarn install
 COPY web/package.json web/
-RUN cd web && yarn install
+RUN cd web && apk add --no-cache --virtual .build-deps \
+	git python make g++ \
+	&& npm install && apk del .build-deps
 ADD . /app
 RUN cd web && yarn run build && mv dist/* /app/public/
 ENV NODE_ENV production
