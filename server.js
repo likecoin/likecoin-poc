@@ -115,7 +115,7 @@ app.get('/query/:key', (req, res) => {
 });
 
 app.post('/meme/:key', (req, res) => {
-  const text = req.body.text;
+  const { text, topText } = req.body;
   const outputFields = req.body.metadata || {};
   likeContract.get(req.params.key)
   .then((result) => {
@@ -145,6 +145,7 @@ app.post('/meme/:key', (req, res) => {
     .stroke('#000000', 2)
     .font('Noto-Sans-CJK-TC-Bold', 100)
     .drawText(0, 0, text || '', 'South')
+    .drawText(0, 0, topText || '', 'North')
     .toBuffer((err, fileContent) => {
       if (err) return handle(err);
       const hash256 = sha256(fileContent);
