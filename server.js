@@ -2,6 +2,7 @@
 const util = require('util');
 const path = require('path');
 const fs = require('fs');
+const proxy = require('http-proxy-middleware');
 const bodyParser = require('body-parser');
 const compression = require('compression');
 const cors = require('cors');
@@ -20,8 +21,9 @@ const eth = new Eth(new Eth.HttpProvider('https://rinkeby.infura.io'));
 const contract = new EthContract(eth);
 const LikeContract = contract(LIKEMEDIA.LIKE_MEDIA_ABI);
 const likeContract = LikeContract.at(LIKEMEDIA.LIKE_MEDIA_ADDRESS);
+const ipfsHost = config.IPFS_HOST || 'like-ipfs';
 const ipfs = ipfsAPI({
-  host: config.IPFS_HOST || 'like-ipfs',
+  host: ipfsHost,
   port: '5001',
   protocol: 'http',
 })
@@ -32,6 +34,7 @@ app.use(compression());
 if (config.DEBUG) app.use(cors({ origin: true }));
 
 app.use(express.static('public'));
+app.use('/ipfs', proxy({ target: `http://${ipfsHost}:8080` }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 

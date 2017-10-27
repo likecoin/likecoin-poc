@@ -17,6 +17,7 @@
     "ethjs-contract": "^0.1.9",
     "express": "^4.16.2",
     "gm": "^1.23.0",
+    "http-proxy-middleware": "^0.17.4",
     "ipfs-api": "^14.3.7",
     "js-sha256": "^0.6.0",
     "multiparty": "^4.1.3"
