@@ -240,6 +240,19 @@ app.post('/meme/:key', (req, res) => {
   });
 });
 
+app.get('/balance', (req, res) => {
+  eth.getBalance(req.query.key || address, 'latest')
+  .then((result) => {
+    const output = {
+      'balance': Eth.fromWei(result, 'ether')
+    };
+    res.json(output);
+  })
+  .catch((err) => {
+    res.status(500).send(err.message || err);
+  });
+});
+
 app.get('/', (req, res) => {
   res.sendStatus(200);
 });
