@@ -13,9 +13,12 @@ const sha256 = require('js-sha256');
 const Eth = require('ethjs');
 const EthContract = require('ethjs-contract');
 const gm = require('gm').subClass({ imageMagick: true });
+const abi = require('ethjs-abi');
+const signer = require('ethjs-signer');
 
 const LIKEMEDIA = require('./constant/contract/likemedia');
 const config = require('./config/config.js');
+const accounts = require('./config/accounts.js');
 
 const eth = new Eth(new Eth.HttpProvider('https://rinkeby.infura.io'));
 const contract = new EthContract(eth);
@@ -27,6 +30,29 @@ const ipfs = ipfsAPI({
   port: '5001',
   protocol: 'http',
 })
+
+const uploadAbi = LIKEMEDIA.LIKE_MEDIA_ABI.find(obj => (obj.type === 'function' && obj.name === 'upload'));
+const privateKey = accounts[0].privateKey;
+const address = accounts[0].address;
+const gasPrice = accounts[0].gasPrice;
+const gasLimit = accounts[0].gasLimit;
+
+function getUploadTxData(metaFields) {
+  const footprintsArray = JSON.parse(metaFields.footprints);
+  const footprintKeys = footprintsArray.map(f => f.id);
+  const footprintValues = footprintsArray.map(f => f.share); 
+  const params = [
+    metaFields.id,
+    metaFields.author,
+    metaFields.description,
+    metaFields.wallet,
+    metaFields.ipfs,
+    footprintKeys,
+    footprintValues,
+    metaFields.license
+  ];
+  return abi.encodeMethod(uploadAbi, params);
+}
 
 const app = express();
 app.use(compression());
@@ -79,9 +105,28 @@ app.post('/upload', (req, res) => {
         return Promise.reject(
           new Error('IPFS pin return no result'));
       }
-      outputFields.id = `0x${hash256}`;
       outputFields.ipfs = result[0];
-      res.json(outputFields);
+      return eth.getTransactionCount(address, "latest");
+    })
+    .then((result) => {
+      if (!result) {
+        return Promise.reject(
+          new Error('ETH getTransactionCount return no result'));
+      }
+      outputFields.id = `0x${hash256}`;
+      const txData = getUploadTxData(outputFields);
+      const tx = signer.sign({
+        nonce: result.toNumber(),
+        to: LIKEMEDIA.LIKE_MEDIA_ADDRESS,
+        data: txData,
+        gasPrice: gasPrice,
+        gasLimit: gasLimit,
+      }, privateKey);
+      return eth.sendRawTransaction(tx);
+    })
+    .then((txHash) => {
+       outputFields.txHash = txHash;
+       res.json(outputFields);
     })
     .catch((err) => {
       res.status(500).send(err.message || err);
@@ -162,14 +207,46 @@ app.post('/meme/:key', (req, res) => {
           return Promise.reject(
             new Error('IPFS pin return no result'));
         }
-        outputFields.id = `0x${hash256}`;
         outputFields.ipfs = result[0];
+        return eth.getTransactionCount(address, "latest");
+      })
+      .then((result) => {
+        if (!result) {
+          return Promise.reject(
+            new Error('ETH getTransactionCount return no result'));
+        }
+        outputFields.id = `0x${hash256}`;
+        const txData = getUploadTxData(outputFields);
+        const tx = signer.sign({
+          nonce: result.toNumber(),
+          to: LIKEMEDIA.LIKE_MEDIA_ADDRESS,
+          data: txData,
+          gasPrice: gasPrice,
+          gasLimit: gasLimit,
+        }, privateKey);
+        return eth.sendRawTransaction(tx);
+      })
+      .then((txHash) => {
+        outputFields.txHash = txHash;
         res.json(outputFields);
       })
       .catch((err) => {
         res.status(500).send(err.message || err);
       });
     });
+  })
+  .catch((err) => {
+    res.status(500).send(err.message || err);
+  });
+});
+
+app.get('/balance', (req, res) => {
+  eth.getBalance(req.query.key || address, 'latest')
+  .then((result) => {
+    const output = {
+      'balance': Eth.fromWei(result, 'ether')
+    };
+    res.json(output);
   })
   .catch((err) => {
     res.status(500).send(err.message || err);
