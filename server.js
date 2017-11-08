@@ -40,7 +40,7 @@ const gasLimit = accounts[0].gasLimit;
 function getUploadTxData(metaFields) {
   const footprintsArray = JSON.parse(metaFields.footprints);
   const footprintKeys = footprintsArray.map(f => f.id);
-  const footprintValues = footprintsArray.map(f => f.share); 
+  const footprintValues = footprintsArray.map(f => f.share);
   const params = [
     metaFields.id,
     metaFields.author,
@@ -52,6 +52,10 @@ function getUploadTxData(metaFields) {
     metaFields.license
   ];
   return abi.encodeMethod(uploadAbi, params);
+}
+
+function checkAddressValid(addr) {
+  return addr.length === 42 && addr.substr(0, 2) === '0x';
 }
 
 const app = express();
@@ -68,25 +72,33 @@ app.post('/upload', (req, res) => {
   const form = new multiparty.Form();
 
   form.parse(req, (err, fields, files) => {
-    const { author, description,  wallet, footprints, license } = fields;
-    const outputFields = {};
-    Object.keys(fields).forEach((key) => {
-      outputFields[key] = fields[key][0];
-    });
-    console.log(outputFields);
     if (err) {
       res.status(500).send(err.message);
       return;
     }
+
+    const { author, description,  wallet, footprints, license } = fields;
+
+    if (!checkAddressValid(wallet)) {
+      res.status(400).send('Invalid author wallet');
+      return;
+    }
+
+    const outputFields = {};
+    Object.keys(fields).forEach((key) => {
+      outputFields[key] = fields[key][0];
+    });
+
     if (!files.image) {
-      res.status(500).send('Image not found');
+      res.status(400).send('Image not found');
       return;
     }
     const targetImage = files.image.find(image => 'image' === image.fieldName);
     if (!targetImage) {
-      res.status(500).send('Invalid image');
+      res.status(400).send('Invalid image');
       return;
     }
+
     const fileContent = fs.readFileSync(targetImage.path);
     const hash256 = sha256(fileContent);
     ipfs.files.add([{
@@ -162,6 +174,12 @@ app.get('/query/:key', (req, res) => {
 app.post('/meme/:key', (req, res) => {
   const { text, topText } = req.body;
   const outputFields = req.body.metadata || {};
+
+  if (!outputFields.wallet || !checkAddressValid(outputFields.wallet)) {
+    res.status(400).send('Invalid author wallet');
+    return;
+  }
+
   likeContract.get(req.params.key)
   .then((result) => {
     const fieldNames = [
