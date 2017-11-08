@@ -59,6 +59,10 @@ function checkAddressValid(addr) {
   return addr.length === 42 && addr.substr(0, 2) === '0x';
 }
 
+function checkFingerprintValid(addr) {
+  return addr.length === 66 && addr.substr(0, 2) === '0x';
+}
+
 const app = express();
 app.use(compression());
 
@@ -145,6 +149,10 @@ app.post('/upload', (req, res) => {
 });
 
 app.get('/query/:key', (req, res) => {
+  if (!checkFingerprintValid(req.params.key)) {
+    res.status(400).send('Invalid image fingerprint');
+    return;
+  }
   likeContract.get(req.params.key)
     .then((result) => {
       const fieldNames = [
@@ -172,6 +180,11 @@ app.get('/query/:key', (req, res) => {
 app.post('/meme/:key', (req, res) => {
   const { text, topText } = req.body;
   const outputFields = req.body.metadata || {};
+
+  if (!checkFingerprintValid(req.params.key)) {
+    res.status(400).send('Invalid image fingerprint');
+    return;
+  }
 
   if (!outputFields.wallet || !checkAddressValid(outputFields.wallet)) {
     res.status(400).send('Invalid author wallet');
