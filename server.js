@@ -1,5 +1,4 @@
 /* eslint 'import/no-unresolved': ['error', { caseSensitive: false }] */
-const util = require('util');
 const path = require('path');
 const fs = require('fs');
 const proxy = require('http-proxy-middleware');
@@ -29,13 +28,15 @@ const ipfs = ipfsAPI({
   host: ipfsHost,
   port: '5001',
   protocol: 'http',
-})
+});
 
 const uploadAbi = LIKEMEDIA.LIKE_MEDIA_ABI.find(obj => (obj.type === 'function' && obj.name === 'upload'));
-const privateKey = accounts[0].privateKey;
-const address = accounts[0].address;
-const gasPrice = accounts[0].gasPrice;
-const gasLimit = accounts[0].gasLimit;
+const {
+  privateKey,
+  address,
+  gasPrice,
+  gasLimit,
+} = accounts[0];
 
 function getUploadTxData(metaFields) {
   const footprintsArray = JSON.parse(metaFields.footprints);
@@ -49,7 +50,7 @@ function getUploadTxData(metaFields) {
     metaFields.ipfs,
     footprintKeys,
     footprintValues,
-    metaFields.license
+    metaFields.license,
   ];
   return abi.encodeMethod(uploadAbi, params);
 }
@@ -73,11 +74,11 @@ app.post('/upload', (req, res) => {
 
   form.parse(req, (err, fields, files) => {
     if (err) {
-      res.status(500).send(err.message);
+      res.status(500).send(err.message || err);
       return;
     }
 
-    const { author, description,  wallet, footprints, license } = fields;
+    const { wallet } = fields;
 
     if (!checkAddressValid(wallet)) {
       res.status(400).send('Invalid author wallet');
@@ -86,14 +87,14 @@ app.post('/upload', (req, res) => {
 
     const outputFields = {};
     Object.keys(fields).forEach((key) => {
-      outputFields[key] = fields[key][0];
+      [outputFields[key]] = fields[key];
     });
 
     if (!files.image) {
       res.status(400).send('Image not found');
       return;
     }
-    const targetImage = files.image.find(image => 'image' === image.fieldName);
+    const targetImage = files.image.find(image => image.fieldName === 'image');
     if (!targetImage) {
       res.status(400).send('Invalid image');
       return;
@@ -105,70 +106,67 @@ app.post('/upload', (req, res) => {
       path: path.basename(targetImage.path),
       content: fileContent,
     }])
-    .then((result) => {
-      if (!result || !result[0]) {
-        return Promise.reject(
-          new Error('IPFS add return no result'));
-      }
-      return ipfs.pin.add(result[0].hash);
-    })
-    .then((result) => {
-      if (!result || !result[0]) {
-        return Promise.reject(
-          new Error('IPFS pin return no result'));
-      }
-      outputFields.ipfs = result[0];
-      return eth.getTransactionCount(address, "latest");
-    })
-    .then((result) => {
-      if (!result) {
-        return Promise.reject(
-          new Error('ETH getTransactionCount return no result'));
-      }
-      outputFields.id = `0x${hash256}`;
-      const txData = getUploadTxData(outputFields);
-      const tx = signer.sign({
-        nonce: result.toNumber(),
-        to: LIKEMEDIA.LIKE_MEDIA_ADDRESS,
-        data: txData,
-        gasPrice: gasPrice,
-        gasLimit: gasLimit,
-      }, privateKey);
-      return eth.sendRawTransaction(tx);
-    })
-    .then((txHash) => {
-       outputFields.txHash = txHash;
-       res.json(outputFields);
-    })
-    .catch((err) => {
-      res.status(500).send(err.message || err);
-    });
+      .then((result) => {
+        if (!result || !result[0]) {
+          return Promise.reject(new Error('IPFS add return no result'));
+        }
+        return ipfs.pin.add(result[0].hash);
+      })
+      .then((result) => {
+        if (!result || !result[0]) {
+          return Promise.reject(new Error('IPFS pin return no result'));
+        }
+        [outputFields.ipfs] = result;
+        return eth.getTransactionCount(address, 'latest');
+      })
+      .then((result) => {
+        if (!result) {
+          return Promise.reject(new Error('ETH getTransactionCount return no result'));
+        }
+        outputFields.id = `0x${hash256}`;
+        const txData = getUploadTxData(outputFields);
+        const tx = signer.sign({
+          nonce: result.toNumber(),
+          to: LIKEMEDIA.LIKE_MEDIA_ADDRESS,
+          data: txData,
+          gasPrice,
+          gasLimit,
+        }, privateKey);
+        return eth.sendRawTransaction(tx);
+      })
+      .then((txHash) => {
+        outputFields.txHash = txHash;
+        res.json(outputFields);
+      })
+      .catch((e) => {
+        res.status(500).send(e.message || e);
+      });
   });
 });
 
 app.get('/query/:key', (req, res) => {
   likeContract.get(req.params.key)
-  .then((result) => {
-    const fieldNames = [
-      'key',
-      'author',
-      'description',
-      'wallet',
-      'ipfs',
-      'license',
-      'timestamp',
-      'footprintIds',
-      'footprintShares',
-    ];
-    const output = {};
-    fieldNames.forEach((value, index) => {
-      output[value] = result[index.toString()];
+    .then((result) => {
+      const fieldNames = [
+        'key',
+        'author',
+        'description',
+        'wallet',
+        'ipfs',
+        'license',
+        'timestamp',
+        'footprintIds',
+        'footprintShares',
+      ];
+      const output = {};
+      fieldNames.forEach((value, index) => {
+        output[value] = result[index.toString()];
+      });
+      res.json(output);
+    })
+    .catch((err) => {
+      res.status(500).send(err.message || err);
     });
-    res.json(output);
-  })
-  .catch((err) => {
-    res.status(500).send(err.message || err);
-  });
 });
 
 app.post('/meme/:key', (req, res) => {
@@ -181,94 +179,92 @@ app.post('/meme/:key', (req, res) => {
   }
 
   likeContract.get(req.params.key)
-  .then((result) => {
-    const fieldNames = [
-      'key',
-      'author',
-      'description',
-      'wallet',
-      'ipfs',
-      'license',
-      'timestamp',
-      'footprintIds',
-      'footprintShares',
-    ];
-    const output = {};
-    fieldNames.forEach((value, index) => {
-      output[value] = result[index.toString()];
-    });
-    return output;
-  })
-  .then((metadata) => {
-    return ipfs.cat(metadata.ipfs);
-  })
-  .then((stream) => {
-    gm(stream)
-    .fill('#ffffff')
-    .stroke('#000000', 2)
-    .font('Noto-Sans-CJK-TC-Bold', 100)
-    .drawText(0, 0, text || '', 'South')
-    .drawText(0, 0, topText || '', 'North')
-    .toBuffer((err, fileContent) => {
-      if (err) return handle(err);
-      const hash256 = sha256(fileContent);
-      ipfs.files.add(fileContent)
-      .then((result) => {
-        if (!result || !result[0]) {
-          return Promise.reject(
-            new Error('IPFS add return no result'));
-        }
-        return ipfs.pin.add(result[0].hash);
-      })
-      .then((result) => {
-        if (!result || !result[0]) {
-          return Promise.reject(
-            new Error('IPFS pin return no result'));
-        }
-        outputFields.ipfs = result[0];
-        return eth.getTransactionCount(address, "latest");
-      })
-      .then((result) => {
-        if (!result) {
-          return Promise.reject(
-            new Error('ETH getTransactionCount return no result'));
-        }
-        outputFields.id = `0x${hash256}`;
-        const txData = getUploadTxData(outputFields);
-        const tx = signer.sign({
-          nonce: result.toNumber(),
-          to: LIKEMEDIA.LIKE_MEDIA_ADDRESS,
-          data: txData,
-          gasPrice: gasPrice,
-          gasLimit: gasLimit,
-        }, privateKey);
-        return eth.sendRawTransaction(tx);
-      })
-      .then((txHash) => {
-        outputFields.txHash = txHash;
-        res.json(outputFields);
-      })
-      .catch((err) => {
-        res.status(500).send(err.message || err);
+    .then((result) => {
+      const fieldNames = [
+        'key',
+        'author',
+        'description',
+        'wallet',
+        'ipfs',
+        'license',
+        'timestamp',
+        'footprintIds',
+        'footprintShares',
+      ];
+      const output = {};
+      fieldNames.forEach((value, index) => {
+        output[value] = result[index.toString()];
       });
+      return output;
+    })
+    .then(metadata => ipfs.cat(metadata.ipfs))
+    .then((stream) => {
+      gm(stream)
+        .fill('#ffffff')
+        .stroke('#000000', 2)
+        .font('Noto-Sans-CJK-TC-Bold', 100)
+        .drawText(0, 0, text || '', 'South')
+        .drawText(0, 0, topText || '', 'North')
+        .toBuffer((err, fileContent) => {
+          if (err) {
+            res.status(500).send(err.message || err);
+            return;
+          }
+          const hash256 = sha256(fileContent);
+          ipfs.files.add(fileContent)
+            .then((result) => {
+              if (!result || !result[0]) {
+                return Promise.reject(new Error('IPFS add return no result'));
+              }
+              return ipfs.pin.add(result[0].hash);
+            })
+            .then((result) => {
+              if (!result || !result[0]) {
+                return Promise.reject(new Error('IPFS pin return no result'));
+              }
+              [outputFields.ipfs] = result;
+              return eth.getTransactionCount(address, 'latest');
+            })
+            .then((result) => {
+              if (!result) {
+                return Promise.reject(new Error('ETH getTransactionCount return no result'));
+              }
+              outputFields.id = `0x${hash256}`;
+              const txData = getUploadTxData(outputFields);
+              const tx = signer.sign({
+                nonce: result.toNumber(),
+                to: LIKEMEDIA.LIKE_MEDIA_ADDRESS,
+                data: txData,
+                gasPrice,
+                gasLimit,
+              }, privateKey);
+              return eth.sendRawTransaction(tx);
+            })
+            .then((txHash) => {
+              outputFields.txHash = txHash;
+              res.json(outputFields);
+            })
+            .catch((e) => {
+              res.status(500).send(e.message || e);
+            });
+        });
+    })
+    .catch((err) => {
+      res.status(500).send(err.message || err);
     });
-  })
-  .catch((err) => {
-    res.status(500).send(err.message || err);
-  });
 });
 
 app.get('/balance', (req, res) => {
   eth.getBalance(req.query.key || address, 'latest')
-  .then((result) => {
-    const output = {
-      'balance': Eth.fromWei(result, 'ether')
-    };
-    res.json(output);
-  })
-  .catch((err) => {
-    res.status(500).send(err.message || err);
-  });
+    .then((result) => {
+      const output = {
+        balance: Eth.fromWei(result, 'ether'),
+      };
+      res.json(output);
+    })
+    .catch((err) => {
+      res.status(500).send(err.message || err);
+    });
 });
 
 app.get('/', (req, res) => {
