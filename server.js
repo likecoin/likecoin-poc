@@ -19,7 +19,7 @@ const LIKEMEDIA = require('./constant/contract/likemedia');
 const config = require('./config/config.js');
 const accounts = require('./config/accounts.js');
 
-const eth = new Eth(new Eth.HttpProvider('https://rinkeby.infura.io'));
+const eth = new Eth(new Eth.HttpProvider('https://rinkeby.infura.io/ywCD9mvUruQeYcZcyghk'));
 const contract = new EthContract(eth);
 const LikeContract = contract(LIKEMEDIA.LIKE_MEDIA_ABI);
 const likeContract = LikeContract.at(LIKEMEDIA.LIKE_MEDIA_ADDRESS);
@@ -82,17 +82,15 @@ app.post('/upload', (req, res) => {
       return;
     }
 
-    const { wallet } = fields;
-
-    if (!checkAddressValid(wallet)) {
-      res.status(400).send('Invalid author wallet');
-      return;
-    }
-
     const outputFields = {};
     Object.keys(fields).forEach((key) => {
       [outputFields[key]] = fields[key];
     });
+
+    if (!checkAddressValid(outputFields.wallet)) {
+      res.status(400).send('Invalid author wallet');
+      return;
+    }
 
     if (!files.image) {
       res.status(400).send('Image not found');
