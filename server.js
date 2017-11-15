@@ -24,8 +24,9 @@ const contract = new EthContract(eth);
 const LikeContract = contract(LIKEMEDIA.LIKE_MEDIA_ABI);
 const likeContract = LikeContract.at(LIKEMEDIA.LIKE_MEDIA_ADDRESS);
 const ipfsHost = config.IPFS_HOST || 'like-ipfs';
+const ipfsApiHost = config.IPFS_API_HOST || 'like-ipfs';
 const ipfs = ipfsAPI({
-  host: ipfsHost,
+  host: ipfsApiHost,
   port: '5001',
   protocol: 'http',
 });
