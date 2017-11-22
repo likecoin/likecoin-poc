@@ -1,5 +1,14 @@
 version: '3'
 services:
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./config/nginx-config/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+     - "3001:3001"
+    links:
+     - like-ipfs
+     - like-server
   like-ipfs:
     image: ipfs/go-ipfs
     ports:
@@ -10,8 +19,6 @@ services:
      - ./ipfs:/data/ipfs
   like-server:
     build: .
-    ports:
-     - "3001:3001"
     volumes:
      - ./server.js:/app/server.js
      - ./config:/app/config
