@@ -1,5 +1,5 @@
-# like-poc
-Meme Generator - a proof of concept of LikeCoin content footprint 
+# Meme Generator
+a proof of concept of LikeCoin content footprint
 
 ## Live Demo
 https://meme.like.community
@@ -7,7 +7,7 @@ https://meme.like.community
 ## Quick startup
 - Prepare a ethereum wallet in rinkeby testnet, [make sure you have eth for running smart contracts](https://faucet.rinkeby.io/)
 - Replace `address` and `privateKey` field in [config/accounts.js](./config/accounts.js)
-- Run `docker-compose up -d`. 
+- Run `docker-compose up -d`.
 It will create a [ipfs container](https://hub.docker.com/r/ipfs/go-ipfs/), a [nginx container](https://hub.docker.com/_/nginx/) and build the `like-server` container.
 The `like-server` container contains the production build of the [frontend](https://github.com/lakoo/like-poc-web) and the nodejs api server.
 
@@ -33,3 +33,5 @@ POST endpoint for creating meme image base on another existing image with finger
 - The new fingerprint and ipfs address, together with the parent fingerprint contained in the metadata is written into smart contract by `sendRawTransaction()`.
 - The result eth transaction hash is then sent back to frontend for tracking.
 
+## Smart contract used
+[like-media-contracts-poc](https://github.com/lakoo/like-media-contracts-poc)
