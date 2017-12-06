@@ -13,7 +13,7 @@
     "body-parser": "^1.18.2",
     "compression": "^1.7.1",
     "cors": "^2.8.4",
-    "ethjs": "^0.2.8",
+    "ethjs": "^0.3.1",
     "ethjs-abi": "^0.2.1",
     "ethjs-contract": "^0.1.9",
     "ethjs-signer": "^0.1.1",
