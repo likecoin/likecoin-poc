@@ -14,15 +14,19 @@ const EthContract = require('ethjs-contract');
 const gm = require('gm').subClass({ imageMagick: true });
 const abi = require('ethjs-abi');
 const signer = require('ethjs-signer');
+const BN = require('bn.js');
+
+const ONE_LIKE = new BN(10).pow(new BN(18));
 
 const LIKEMEDIA = require('./constant/contract/likemedia');
+const LIKECOIN = require('./constant/contract/likecoin');
 const config = require('./config/config.js');
 const accounts = require('./config/accounts.js');
 
 const eth = new Eth(new Eth.HttpProvider('https://rinkeby.infura.io/ywCD9mvUruQeYcZcyghk'));
 const contract = new EthContract(eth);
-const LikeContract = contract(LIKEMEDIA.LIKE_MEDIA_ABI);
-const likeContract = LikeContract.at(LIKEMEDIA.LIKE_MEDIA_ADDRESS);
+const LikeMediaContract = contract(LIKEMEDIA.LIKE_MEDIA_ABI);
+const likeMediaContract = LikeMediaContract.at(LIKEMEDIA.LIKE_MEDIA_ADDRESS);
 const ipfsHost = config.IPFS_HOST || 'like-ipfs';
 const ipfsApiHost = config.IPFS_API_HOST || 'like-ipfs';
 const ipfs = ipfsAPI({
@@ -32,6 +36,8 @@ const ipfs = ipfsAPI({
 });
 
 const uploadAbi = LIKEMEDIA.LIKE_MEDIA_ABI.find(obj => (obj.type === 'function' && obj.name === 'upload'));
+const transferAbi = LIKECOIN.LIKE_COIN_ABI.find(obj => (obj.type === 'function' && obj.name === 'transfer'));
+const giveLikeDelegatedAbi = LIKECOIN.LIKE_COIN_ABI.find(obj => (obj.type === 'function' && obj.name === 'giveLikeDelegated'));
 const {
   privateKey,
   address,
@@ -152,7 +158,7 @@ app.get('/query/:key', (req, res) => {
     res.status(400).send('Invalid image fingerprint');
     return;
   }
-  likeContract.get(req.params.key)
+  likeMediaContract.get(req.params.key)
     .then((result) => {
       const fieldNames = [
         'key',
@@ -176,6 +182,37 @@ app.get('/query/:key', (req, res) => {
     });
 });
 
+app.post('/faucet/:addr', (req, res) => {
+  const to = req.params.addr;
+  if (!checkAddressValid(to)) {
+    res.status(400).send('Invalid wallet');
+    return;
+  }
+
+  const value = ONE_LIKE.mul(new BN(100));
+  eth.getTransactionCount(address, 'latest')
+    .then((result) => {
+      if (!result) {
+        return Promise.reject(new Error('ETH getTransactionCount return no result'));
+      }
+      const txData = abi.encodeMethod(transferAbi, [to, value])
+      const tx = signer.sign({
+        nonce: result.toNumber(),
+        to: LIKECOIN.LIKE_COIN_ADDRESS,
+        data: txData,
+        gasPrice,
+        gasLimit,
+      }, privateKey);
+      return eth.sendRawTransaction(tx);
+    })
+    .then((txHash) => {
+      res.json(txHash);
+    })
+    .catch((err) => {
+      res.status(500).send(err.message || err);
+    });
+});
+
 app.post('/meme/:key', (req, res) => {
   const { text, topText } = req.body;
   const outputFields = req.body.metadata || {};
@@ -190,7 +227,7 @@ app.post('/meme/:key', (req, res) => {
     return;
   }
 
-  likeContract.get(req.params.key)
+  likeMediaContract.get(req.params.key)
     .then((result) => {
       const fieldNames = [
         'key',
