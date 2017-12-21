@@ -37,7 +37,7 @@ const ipfs = ipfsAPI({
 
 const uploadAbi = LIKEMEDIA.LIKE_MEDIA_ABI.find(obj => (obj.type === 'function' && obj.name === 'upload'));
 const transferAbi = LIKECOIN.LIKE_COIN_ABI.find(obj => (obj.type === 'function' && obj.name === 'transfer'));
-const giveLikeDelegatedAbi = LIKECOIN.LIKE_COIN_ABI.find(obj => (obj.type === 'function' && obj.name === 'giveLikeDelegated'));
+const giveLikeDelegatedAbi = LIKEMEDIA.LIKE_MEDIA_ABI.find(obj => (obj.type === 'function' && obj.name === 'giveLikeDelegated'));
 const {
   privateKey,
   address,
@@ -176,6 +176,42 @@ app.get('/query/:key', (req, res) => {
         output[value] = result[index.toString()];
       });
       res.json(output);
+    })
+    .catch((err) => {
+      res.status(500).send(err.message || err);
+    });
+});
+
+app.post("/like/:key", (req, res) => {
+  const key = req.params.key;
+  if (!checkFingerprintValid(key)) {
+    res.status(400).send('Invalid image fingerprint');
+    return;
+  }
+
+  const {from, value, nonce, v, r, s} = req.body;
+  if (!from || !checkAddressValid(from)) {
+    res.status(400).send('Invalid from wallet');
+    return;
+  }
+
+  eth.getTransactionCount(address, 'latest')
+    .then((result) => {
+      if (!result) {
+        return Promise.reject(new Error('ETH getTransactionCount return no result'));
+      }
+      const txData = abi.encodeMethod(giveLikeDelegatedAbi, [key, from, value, nonce, v, r, s])
+      const tx = signer.sign({
+        nonce: result.toNumber(),
+        to: LIKEMEDIA.LIKE_MEDIA_ADDRESS,
+        data: txData,
+        gasPrice,
+        gasLimit,
+      }, privateKey);
+      return eth.sendRawTransaction(tx);
+    })
+    .then((txHash) => {
+      res.json(txHash);
     })
     .catch((err) => {
       res.status(500).send(err.message || err);

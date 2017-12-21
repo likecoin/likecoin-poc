@@ -8,6 +8,44 @@ const LIKE_MEDIA_ABI = [
         "type": "bytes32"
       },
       {
+        "name": "fromAddr",
+        "type": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "name": "_nonce",
+        "type": "uint256"
+      },
+      {
+        "name": "_v",
+        "type": "uint8"
+      },
+      {
+        "name": "_r",
+        "type": "bytes32"
+      },
+      {
+        "name": "_s",
+        "type": "bytes32"
+      }
+    ],
+    "name": "giveLikeDelegated",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "key",
+        "type": "bytes32"
+      },
+      {
         "name": "author",
         "type": "string"
       },
@@ -39,6 +77,45 @@ const LIKE_MEDIA_ABI = [
     "name": "upload",
     "outputs": [],
     "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "key",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getNumberOfTx",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "likeCounts",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -89,6 +166,7 @@ const LIKE_MEDIA_ABI = [
       }
     ],
     "payable": false,
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -131,11 +209,59 @@ const LIKE_MEDIA_ABI = [
       }
     ],
     "payable": false,
+    "stateMutability": "view",
     "type": "function"
   },
   {
-    "inputs": [],
+    "constant": false,
+    "inputs": [
+      {
+        "name": "key",
+        "type": "bytes32"
+      },
+      {
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "name": "fromAddr",
+        "type": "address"
+      }
+    ],
+    "name": "giveLike",
+    "outputs": [],
     "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "key",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getLike",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "name": "_likeAddr",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
     "type": "constructor"
   },
   {
@@ -184,9 +310,31 @@ const LIKE_MEDIA_ABI = [
     ],
     "name": "Uploaded",
     "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "key",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "name": "fromAddr",
+        "type": "address"
+      }
+    ],
+    "name": "GiveLike",
+    "type": "event"
   }
 ];
 
-const LIKE_MEDIA_ADDRESS = '0xA97fEfe489ca62ADD4949360DCE30e3351F6881B';
+const LIKE_MEDIA_ADDRESS = '0x5beE1FD64DA6Da28EE83813afd17CAb186373d28';
 
 module.exports = { LIKE_MEDIA_ABI, LIKE_MEDIA_ADDRESS };
