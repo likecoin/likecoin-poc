@@ -211,7 +211,7 @@ app.post("/like/:key", (req, res) => {
       return eth.sendRawTransaction(tx);
     })
     .then((txHash) => {
-      res.json(txHash);
+      res.json({ txHash });
     })
     .catch((err) => {
       res.status(500).send(err.message || err);
@@ -242,7 +242,7 @@ app.post('/faucet/:addr', (req, res) => {
       return eth.sendRawTransaction(tx);
     })
     .then((txHash) => {
-      res.json(txHash);
+      res.json({ txHash });
     })
     .catch((err) => {
       res.status(500).send(err.message || err);
