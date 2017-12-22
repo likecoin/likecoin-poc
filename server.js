@@ -126,7 +126,7 @@ app.post('/upload', (req, res) => {
           return Promise.reject(new Error('IPFS pin return no result'));
         }
         [outputFields.ipfs] = result;
-        return eth.getTransactionCount(address, 'latest');
+        return eth.getTransactionCount(address, 'pending');
       })
       .then((result) => {
         if (!result) {
@@ -195,7 +195,7 @@ app.post("/like/:key", (req, res) => {
     return;
   }
 
-  eth.getTransactionCount(address, 'latest')
+  eth.getTransactionCount(address, 'pending')
     .then((result) => {
       if (!result) {
         return Promise.reject(new Error('ETH getTransactionCount return no result'));
@@ -226,7 +226,7 @@ app.post('/faucet/:addr', (req, res) => {
   }
 
   const value = ONE_LIKE.mul(new BN(100));
-  eth.getTransactionCount(address, 'latest')
+  eth.getTransactionCount(address, 'pending')
     .then((result) => {
       if (!result) {
         return Promise.reject(new Error('ETH getTransactionCount return no result'));
@@ -308,7 +308,7 @@ app.post('/meme/:key', (req, res) => {
                 return Promise.reject(new Error('IPFS pin return no result'));
               }
               [outputFields.ipfs] = result;
-              return eth.getTransactionCount(address, 'latest');
+              return eth.getTransactionCount(address, 'pending');
             })
             .then((result) => {
               if (!result) {
