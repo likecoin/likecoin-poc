@@ -182,14 +182,22 @@ app.get('/query/:key', (req, res) => {
     });
 });
 
-app.post("/like/:key", (req, res) => {
-  const key = req.params.key;
+app.post('/like/:key', (req, res) => {
+  const { key } = req.params;
   if (!checkFingerprintValid(key)) {
     res.status(400).send('Invalid image fingerprint');
     return;
   }
 
-  const {from, value, nonce, v, r, s} = req.body;
+  const {
+    from,
+    value,
+    nonce,
+    v,
+    r,
+    s,
+  } = req.body;
+
   if (!from || !checkAddressValid(from)) {
     res.status(400).send('Invalid from wallet');
     return;
@@ -200,7 +208,7 @@ app.post("/like/:key", (req, res) => {
       if (!result) {
         return Promise.reject(new Error('ETH getTransactionCount return no result'));
       }
-      const txData = abi.encodeMethod(giveLikeDelegatedAbi, [key, from, value, nonce, v, r, s])
+      const txData = abi.encodeMethod(giveLikeDelegatedAbi, [key, from, value, nonce, v, r, s]);
       const tx = signer.sign({
         nonce: result.toNumber(),
         to: LIKEMEDIA.LIKE_MEDIA_ADDRESS,
@@ -231,7 +239,7 @@ app.post('/faucet/:addr', (req, res) => {
       if (!result) {
         return Promise.reject(new Error('ETH getTransactionCount return no result'));
       }
-      const txData = abi.encodeMethod(transferAbi, [to, value])
+      const txData = abi.encodeMethod(transferAbi, [to, value]);
       const tx = signer.sign({
         nonce: result.toNumber(),
         to: LIKECOIN.LIKE_COIN_ADDRESS,
