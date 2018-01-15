@@ -1,4 +1,7 @@
 # Meme Generator
+
+[![NSP Status](https://nodesecurity.io/orgs/likecoin/projects/a5bea3a5-795d-47a3-9059-c5c9c313e1d3/badge)](https://nodesecurity.io/orgs/likecoin/projects/a5bea3a5-795d-47a3-9059-c5c9c313e1d3)
+
 a proof of concept of LikeCoin content footprint
 
 ## Live Demo
