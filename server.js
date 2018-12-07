@@ -23,7 +23,7 @@ const LIKECOIN = require('./constant/contract/likecoin');
 const config = require('./config/config.js');
 const accounts = require('./config/accounts.js');
 
-const eth = new Eth(new Eth.HttpProvider('https://rinkeby.infura.io/ywCD9mvUruQeYcZcyghk'));
+const eth = new Eth(new Eth.HttpProvider('https://rinkeby.infura.io/v3/66d5ee46e5a14aa387c9e4fbc662727f'));
 const contract = new EthContract(eth);
 const LikeMediaContract = contract(LIKEMEDIA.LIKE_MEDIA_ABI);
 const likeMediaContract = LikeMediaContract.at(LIKEMEDIA.LIKE_MEDIA_ADDRESS);
